@@ -6,6 +6,7 @@ import time
 import re
 import os
 import logging
+import random
 
 # market=btc-xem
 
@@ -207,7 +208,8 @@ def main():
 	print('Listening...')
 
 	while 1:
-		time.sleep(10)
+		# Randomising wait time to mimic humans! 
+		time.sleep(andom.randint(5, 10))
 	print('I am done.')
 
 if __name__ == '__main__':
