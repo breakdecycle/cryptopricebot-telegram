@@ -1,41 +1,32 @@
+import logging
+import os
+import random
+import re
+import time
+
 import requests
-import json
 import telepot
 from telepot.loop import MessageLoop
-import time
-import re
-import os
-import logging
 
 # market=btc-xem
+from util.logger import log_setup
 
-token = os.getenv('CryptoPBot_Telegram')
-admin = os.getenv('adminID')
 
-bot = telepot.Bot(token)
-me = bot.getMe()
-print('Initialized bot: {}'.format(me.get('username')))
+def main():
+	MessageLoop(bot, handle).run_as_thread()
+	logger.info('Listening...')
 
-coinList = ['USDT-BTC', 'QUOINE' , 'LUNO' ,'BTC-ETH', 'BTC-LTC', 'BTC-XMR']
-
-logging.basicConfig(filename = 'telegrambot.log', level=logging.INFO)
-
-xrate = requests.get('https://api.fixer.io/latest?base=USD')
-usdMYR = xrate.json()['rates']['MYR']
-
-xrateJPY = requests.get('https://api.fixer.io/latest?base=JPY')
-jpyMYR = xrateJPY.json()['rates']['MYR']
-jpyUSD = xrateJPY.json()['rates']['USD']
-
-bittBTC = requests.get('https://bittrex.com/api/v1.1/public/getticker?market=usdt-btc')
-priceBTC = bittBTC.json()['result']['Bid']
+	while 1:
+		# Randomising wait time to mimic humans!
+		time.sleep(random.randint(5, 10))
+	logger.info('I am done.')
 
 
 def handle(msg):
 	"""Handle messages received by bot"""
 	content_type, chat_type, chat_id = telepot.glance(msg)
-	# print(content_type, chat_type, chat_id)
-	logging.info('Chat ID: {}   Message: {}'.format(chat_id, msg['text']))
+	# logger.info(content_type, chat_type, chat_id)
+	logger.info('Chat ID: {}   Message: {}'.format(chat_id, msg['text']))
 
 	# To make sure user input is text
 	if content_type == 'text':
@@ -124,8 +115,8 @@ def handle(msg):
 
 			else:
 				bot.sendMessage(chat_id,'Sorry I do not understand you')
-				print(admin)
-				print('chat_id is {}. It is of type: {}'.format(chat_id, type(chat_id)))
+				logger.info(admin)
+				logger.info('chat_id is {}. It is of type: {}'.format(chat_id, type(chat_id)))
 
 		# Regex to sort out crypto pairings from user input
 		elif len(pairingRegex ) > 0 or priceRegex != None:
@@ -199,16 +190,32 @@ def handle(msg):
 # Testing pit- to be commented out otherwise ##################
 
 
-
-
-
-def main():
-	MessageLoop(bot, handle).run_as_thread()
-	print('Listening...')
-
-	while 1:
-		time.sleep(10)
-	print('I am done.')
-
 if __name__ == '__main__':
+	# Global variables
+	LOGGER_LEVEL = logging.INFO  # TODO: Set logging level | Options: 'INFO', 'DEBUG', 'ERROR', etc.
+
+	PARENT_DIR = os.path.dirname(os.path.abspath(__file__))
+	SCRIPT_NAME = os.path.basename(__file__)[:-3]
+	LOG_FILENAME = SCRIPT_NAME
+	logger = log_setup(PARENT_DIR, LOG_FILENAME, LOGGER_LEVEL)
+
+	token = os.getenv('CryptoPBot_Telegram')
+	admin = os.getenv('adminID')
+
+	bot = telepot.Bot(token)
+	me = bot.getMe()
+	logger.info('Initialized bot: {}'.format(me.get('username')))
+
+	coinList = ['USDT-BTC', 'QUOINE', 'LUNO', 'BTC-ETH', 'BTC-LTC', 'BTC-XMR']
+
+	xrate = requests.get('https://api.fixer.io/latest?base=USD')
+	usdMYR = xrate.json()['rates']['MYR']
+
+	xrateJPY = requests.get('https://api.fixer.io/latest?base=JPY')
+	jpyMYR = xrateJPY.json()['rates']['MYR']
+	jpyUSD = xrateJPY.json()['rates']['USD']
+
+	bittBTC = requests.get('https://bittrex.com/api/v1.1/public/getticker?market=usdt-btc')
+	priceBTC = bittBTC.json()['result']['Bid']
+	
 	main()
